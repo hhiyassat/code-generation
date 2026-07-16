@@ -92,6 +92,7 @@ export const applicationsApi = {
   },
   reviewQueue: () => request<{ applications: Application[] }>('GET', '/review/queue'),
   claim:  (id: number) => request<{ application: Application }>('POST', `/applications/${id}/claim`),
+  release: (id: number) => request<{ application: Application }>('POST', `/applications/${id}/release`),
   decide: (id: number, decision: string, notes?: string, annotations?: unknown) =>
     request<{ review: unknown; application: Application }>('POST', `/applications/${id}/decide`, { decision, notes, annotations }),
   confirmPayment: (id: number, payment_reference: string) =>
@@ -106,6 +107,7 @@ export const reviewApi = {
   queue:            () => applicationsApi.reviewQueue(),
   get:              (id: number) => applicationsApi.get(id),
   claim:            (id: number) => applicationsApi.claim(id),
+  release:          (id: number) => applicationsApi.release(id),
   decide:           (id: number, decision: string, notes?: string, annotations?: unknown) =>
                       applicationsApi.decide(id, decision, notes, annotations),
   confirmPayment:   (id: number, ref: string) => applicationsApi.confirmPayment(id, ref),

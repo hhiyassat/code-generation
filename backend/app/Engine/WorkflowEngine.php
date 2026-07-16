@@ -47,6 +47,7 @@ class WorkflowEngine
             Application::STATUS_APPROVED,
             Application::STATUS_REJECTED,
             Application::STATUS_MODIFICATIONS_REQUESTED,
+            Application::STATUS_SUBMITTED, // WF-011: reviewer releasing their claim
         ],
         Application::STATUS_MODIFICATIONS_REQUESTED => [Application::STATUS_SUBMITTED],
         Application::STATUS_APPROVED                => [Application::STATUS_CERTIFICATE_ISSUED],
@@ -177,6 +178,53 @@ class WorkflowEngine
 
         return $app->fresh();
     }
+    // ─────────────────────────────────────────────────────────────────
+    // release() — EDA Decision Chain: under_review → submitted
+    // ─────────────────────────────────────────────────────────────────
+
+        /**
+     * Release a claimed application back to the unassigned pool.
+     *
+     * EDA Decision Chain:
+     *   B-3 Relationship:   Only the assigned reviewer (or an admin) may release
+     *   B-5 Difference:     under_review → submitted in ALLOWED_TRANSITIONS
+     *   B-6 Conditions:     Application must currently be under_review
+     *   B-8 Blockers:       lockForUpdate() prevents race condition (WF-004)
+     *   B-9 Effect:         AuditLog::record() inside DB::transaction()
+     */
+    public function release(Application $app,User $actor):Application
+    {
+        $prevStatus = $app->status;
+        DB::transaction(function() use ($app,$actor,$prevStatus){
+            // WF-004: lockForUpdate() prevents concurrent state changes
+            $locked = Application::lockForUpdate()->find($app->id);
+
+            if ($locked->status !== Application::STATUS_UNDER_REVIEW){
+                abort(409,'Application is not currently under review');
+
+            }
+            // B-3: only the reviewer who claimed it — or an admin — may release it
+            if ($locked->assigned_reviewer_id !== $actor->id && !$actor->isAdmin() ){
+                abort(403,'Only the assigned reviewer or the admin may release this claim');
+            }
+            $this->transitionTo($locked,Application::STATUS_SUBMITTED);
+            $locked->assigned_reviewer_id = null;
+            $locked->save();
+
+            AuditLog::record(
+                user:$actor,
+                subject:$locked,
+                action:'application.released',
+                extra:[
+                    'rule_id'     => 'ESP-WF-011',
+                    'from_status' => $prevStatus,
+                    'to_status'   => Application::STATUS_SUBMITTED,
+                ],
+            );
+            $app->fill($locked->toArray());
+        });
+        return $app->fresh();
+    }   
 
     // ─────────────────────────────────────────────────────────────────
     // decide() — EDA Decision Chain: under_review → approved|rejected|modifications_requested

@@ -230,6 +230,15 @@ class ApplicationController extends Controller
 
         return response()->json(['application' => $app]);
     }
+    // ── Release (unclaim) ────────────────────────────────────────────
+    public function release(Request $request, int $id): JsonResponse
+    {
+        $app    = Application::forOrganization($request->user()->organization_id)->findOrFail($id);
+        $engine = new WorkflowEngine($app->serviceDefinition);
+        $app    = $engine->release($app, $request->user());
+
+        return response()->json(['application' => $app]);
+    }
 
     // ── Decide ────────────────────────────────────────────────────────
 

@@ -39,6 +39,7 @@ export function ReviewPanel() {
   const [app, setApp]             = useState<Application | null>(null);
   const [loading, setLoading]     = useState(true);
   const [claiming, setClaiming]   = useState(false);
+  const [releasing, setReleasing] = useState(false);
   const [deciding, setDeciding]   = useState(false);
   const [decision, setDecision]   = useState('');
   const [notes, setNotes]         = useState('');
@@ -64,6 +65,20 @@ export function ReviewPanel() {
       setPageError((e as Error).message);
     } finally {
       setClaiming(false);
+    }
+  };
+  const handleRelease = async () =>{
+    if (!app) return;
+    if(!window.confirm('هل تريد التراجع عن استلام هذا الطلب؟ سيصبح متاحاً لمراجعين آخرين.')) return;
+    setReleasing(true);
+    setPageError('');
+    try{
+      const r = await reviewApi.release(app.id);
+      setApp(r.application);
+    } catch (e:unknown){
+      setPageError((e as Error).message);
+    }finally{
+      setReleasing(false);
     }
   };
 
@@ -158,9 +173,14 @@ export function ReviewPanel() {
           )}
 
           {isClaimed && app.status === 'under_review' && (
-            <span className="text-xs px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 font-medium">
-              🔒 قيد مراجعتك
-            </span>
+            <button
+              onClick={handleRelease}
+              disabled={releasing}
+              title="التراجع عن الاستلام وإعادة الطلب لقائمة الانتظار"
+              className="text-xs px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 font-medium hover:bg-orange-200 disabled:opacity-50 transition-colors"
+            >
+              {releasing ? 'جارٍ...' : '🔓 قيد مراجعتك — تحرير'}
+            </button>
           )}
         </div>
       </div>

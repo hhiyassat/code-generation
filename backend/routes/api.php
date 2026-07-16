@@ -84,6 +84,7 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'token.inactivity', 'password.p
         // FR-008 to FR-010: Review workflow
         Route::get('review/queue',                [ApplicationController::class, 'reviewQueue']);
         Route::post('applications/{id}/claim',    [ApplicationController::class, 'claim']);
+        Route::post('applications/{id}/release',  [ApplicationController::class, 'release']);   
         Route::post('applications/{id}/decide',   [ApplicationController::class, 'decide']);
     });
 
