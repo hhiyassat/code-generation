@@ -7,6 +7,7 @@ import type { User } from './types';
 import { ServiceList }             from './pages/applicant/ServiceList';
 import { Apply }                   from './pages/applicant/Apply';
 import { MyApplications }          from './pages/applicant/MyApplications';
+import { ApplicationDetail }       from './pages/applicant/ApplicationDetail';
 import { ReviewQueue }             from './pages/reviewer/ReviewQueue';
 import { ReviewPanel }             from './pages/reviewer/ReviewPanel';
 import { AdminDashboard }          from './pages/admin/AdminDashboard';
@@ -231,6 +232,7 @@ export default function App() {
           <Route path="/services"          element={<RequireApplicant><Layout><ServiceList /></Layout></RequireApplicant>} />
           <Route path="/apply/:serviceCode"element={<RequireApplicant><Layout><Apply /></Layout></RequireApplicant>} />
           <Route path="/my-applications"   element={<RequireApplicant><Layout><MyApplications /></Layout></RequireApplicant>} />
+          <Route path="/applications/:id"  element={<RequireApplicant><Layout><ApplicationDetail /></Layout></RequireApplicant>} />
 
           {/* Reviewer */}
           <Route path="/review/queue"      element={<RequireAuth><Layout><ReviewQueue /></Layout></RequireAuth>} />

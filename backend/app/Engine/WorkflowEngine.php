@@ -137,7 +137,7 @@ class WorkflowEngine
     {
         // B-2/B-3: Role must match stage
         $stage = $this->service->getStage($app->current_stage ?? '');
-        if ($stage && isset($stage['role'])) {
+        if ($stage && isset($stage['role']) && ! $actor->isAdmin()) {
             if (! $actor->hasRole($stage['role'])) {
                 abort(403, "Stage '{$app->current_stage}' requires role '{$stage['role']}'.");
             }

@@ -214,8 +214,22 @@ class ApplicationController extends Controller
             ->where('assigned_reviewer_id', $user->id)
             ->orderBy('sla_deadline');
 
-        // Merge both sets, my in-progress first
-        $applications = $myInProgress->get()->merge($submitted->get());
+        // Bug fix: approved applications previously vanished from every list once
+        // approved — staff had no way to reach them to confirm payment or issue a
+        // certificate. Surface them here for staff/admin (the only roles that can
+        // act on payment/certificates — auditors have no action to take on these).
+        $approved = collect();
+        if ($user->isStaff() || $user->isAdmin()) {
+            $approved = Application::forOrganization($org)
+                ->with(['serviceDefinition:id,code,name_ar,name_en,schema', 'applicant:id,name,email'])
+                ->where('status', Application::STATUS_APPROVED)
+                ->orderBy('updated_at')
+                ->get();
+        }
+
+        // Merge all sets, my in-progress first, then unassigned submitted, then approved
+        $applications = $myInProgress->get()->merge($submitted->get())->merge($approved);
+
 
         return response()->json(['applications' => $applications->values()]);
     }

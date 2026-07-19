@@ -44,7 +44,8 @@ export function ReviewQueue() {
       ) : (
         <div className="space-y-3">
           {queue.map(app => {
-            const sla = slaStatus(app);
+            const isApproved = app.status === 'approved';
+            const sla = isApproved ? 'ok' : slaStatus(app);
             const slaColors: Record<string, string> = {
               breached: 'border-red-400 bg-red-50',
               urgent:   'border-orange-400 bg-orange-50',
@@ -56,17 +57,25 @@ export function ReviewQueue() {
               <Link
                 key={app.id}
                 to={`/review/${app.id}`}
-                className={`block rounded-xl border-2 p-5 hover:shadow-md transition-all ${slaColors[sla]}`}
+                className={`block rounded-xl border-2 p-5 hover:shadow-md transition-all ${
+                  isApproved ? 'border-teal-300 bg-teal-50' : slaColors[sla]
+                }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="font-mono text-xs text-gray-400">{app.reference_number}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
-                        {app.service_definition?.schema?.workflow?.stages?.find(
-                          s => s.id === app.current_stage
-                        )?.label_ar ?? app.current_stage}
-                      </span>
+                      {isApproved ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-medium">
+                          ✅ موافق عليه — بانتظار الدفع/الشهادة
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                          {app.service_definition?.schema?.workflow?.stages?.find(
+                            s => s.id === app.current_stage
+                          )?.label_ar ?? app.current_stage}
+                        </span>
+                      )}
                       {sla === 'breached' && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">
                           ⚠️ تجاوز الموعد
@@ -86,7 +95,7 @@ export function ReviewQueue() {
                       {app.applicant?.name} · {app.applicant?.email}
                     </p>
 
-                    {app.sla_deadline && (
+                    {!isApproved && app.sla_deadline && (
                       <p className="text-xs text-gray-400 mt-2">
                         الموعد النهائي: {new Date(app.sla_deadline).toLocaleString('ar-EG')}
                       </p>
@@ -95,9 +104,11 @@ export function ReviewQueue() {
 
                   <div className="flex-shrink-0">
                     <span className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
-                      app.assigned_reviewer_id ? 'bg-orange-100 text-orange-700' : 'bg-blue-600 text-white'
+                      isApproved
+                        ? 'bg-teal-600 text-white'
+                        : app.assigned_reviewer_id ? 'bg-orange-100 text-orange-700' : 'bg-blue-600 text-white'
                     }`}>
-                      {app.assigned_reviewer_id ? '🔒 قيد مراجعتك' : 'مراجعة'}
+                      {isApproved ? '💳 تأكيد الدفع / إصدار الشهادة' : app.assigned_reviewer_id ? '🔒 قيد مراجعتك' : 'مراجعة'}
                     </span>
                   </div>
                 </div>
