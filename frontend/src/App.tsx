@@ -16,7 +16,8 @@ import { IntegrationCycleDetail }  from './pages/admin/IntegrationCycleDetail';
 import { NewService }              from './pages/admin/NewService';
 import { ServicesList }            from './pages/admin/ServicesList';
 import { EditService }             from './pages/admin/EditService';
-
+import { AllApplications }         from './pages/admin/AllApplications';
+import { UsersList }               from './pages/admin/UsersList';
 // ── Auth Context ──────────────────────────────────────────────────────────────
 
 interface AuthContextType {
@@ -245,6 +246,8 @@ export default function App() {
           <Route path="/admin/services/:id/edit"    element={<RequireAuth><Layout><EditService /></Layout></RequireAuth>} />
           <Route path="/admin/integration"          element={<RequireAuth><Layout><IntegrationCycles /></Layout></RequireAuth>} />
           <Route path="/admin/integration/:id"      element={<RequireAuth><Layout><IntegrationCycleDetail /></Layout></RequireAuth>} />
+          <Route path="/admin/applications"         element={<RequireAuth><Layout><AllApplications /></Layout></RequireAuth>} />
+          <Route path="/admin/users"                element={<RequireAuth><Layout><UsersList /></Layout></RequireAuth>} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

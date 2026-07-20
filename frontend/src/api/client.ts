@@ -1,7 +1,7 @@
 // ESP v2 — API Client
 // All requests go through this client for consistent error handling.
 
-import type { Application, ApplicationDocument, Certificate, DashboardStats, ServiceDefinition, User } from '../types';
+import type { Application, ApplicationDocument, Certificate, DashboardStats, ServiceDefinition, User, Paginated } from '../types';
 
 const BASE = '/api/v1';
 
@@ -186,8 +186,11 @@ export const adminApi = {
   listUsers:       () => request<{ users: User[] }>('GET', '/admin/users'),
   createUser:      (data: unknown) => request<{ user: User }>('POST', '/admin/users', data),
   updateUser:      (id: number, data: unknown) => request<{ user: User }>('PUT', `/admin/users/${id}`, data),
-  allApplications: (status?: string) =>
-    request<{ data: Application[] }>('GET', `/admin/applications${status ? `?status=${status}` : ''}`),
+  allApplications: (status?: string, page = 1) => {
+    const params = new URLSearchParams({ page: String(page) });
+    if (status) params.set('status', status);
+    return request<Paginated<Application>>('GET', `/admin/applications?${params.toString()}`);
+  },
   auditLogs: () => request<{ data: unknown[] }>('GET', '/admin/audit-logs'),
 
   /** List all services including drafts */
